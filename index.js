@@ -18,14 +18,31 @@ app.get('/', async (req, res) => {
     try {
         const clientIp = requestIp.getClientIp(req);
         console.log('clientIP:' + clientIp);
-        let location = 'Unknown';
-
-        const geoData = geoip.lookup(clientIp);
-        if (geoData && geoData.city) {
-            location = `${geoData.city}, ${geoData.country}`;
+        
+        if (clientIp === '::1' || clientIp === '127.0.0.1') {
+            clientIp = '8.8.8.8'; // Use Google's public IP address if client IP is not available
         }
-        console.log('geoData', geoData)
+        
+        // let location = 'Unknown';
+
+        // const geoData = geoip.lookup(clientIp);
+        // console.log('geoData', geoData)
+
+        // if (geoData && geoData.city) {
+        //     location = `${geoData.city}, ${geoData.country}`;
+        // }
+        
+        const geoResponse = await axios.get(`http://ipinfo.io/${clientIp}?token=${process.env.IPINFO_TOKEN}`);
+        const geoData = geoResponse.data;
+
+        if (!geoData || !geoData.city || !geoData.country) {
+            throw new Error('Could not determine location from the IP address')
+            
+        }
+
+        const location = `${geoData.city}, ${geoData.country}`;
         const name = req.query.name || 'Anonymous';
+        
 
         //fetch weather data using Axios
         const weatherResponse = await axios.get(`http://api.weatherapi.com/v1/current.json`, {
@@ -34,6 +51,8 @@ app.get('/', async (req, res) => {
                 q: location
             }
         });
+
+        console.log('Weather API Response:', weatherResponse.data)
 
         const temperature = weatherResponse.data.current.temp_c;
 
