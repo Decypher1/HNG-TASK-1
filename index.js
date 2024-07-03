@@ -54,7 +54,7 @@ app.post('/', async (req, res) => {
 
         const temperature = weatherResponse.data.current.temp_c;
 
-        const greeting = `Hello, ${name}! The temperature in ${location} is ${temperature} degrees Celsius.`;
+        const greeting = `Hello, ${name}! The temperature is ${temperature} degrees Celsius in ${location}.`;
         const response = {
             ip: clientIp,
             location: location,
