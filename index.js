@@ -1,50 +1,38 @@
 
 const config = require('./config/config')
-require('dotenv').config()
-const express = require('express')
-const axios= require('axios')
-const PORT = process.env.PORT || 4000
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const requestIp = require('request-ip');
 
-const requestIp = require('request-ip')
-const geoip = require('geoip-lite')
+const PORT = process.env.PORT || 4000;
+const app = express();
 
-
-const app = express()
-
-app.use(express.json())
-
+app.use(express.json());
 
 app.get('/', async (req, res) => {
     try {
-        const clientIp = requestIp.getClientIp(req);
-        console.log('clientIP:' + clientIp);
-        
-        if (clientIp === '::1' || clientIp === '127.0.0.1') {
-            clientIp = '8.8.8.8'; // Use Google's public IP address if client IP is not available
+        let clientIp = requestIp.getClientIp(req);
+        console.log('Client IP:', clientIp);
+
+        // Testing with local IP
+        if (clientIp.startsWith('::ffff:') || clientIp === '::1' || clientIp === '127.0.0.1') {
+            clientIp = '8.8.8.8'; // Example: Google's public DNS server IP address
         }
-        
-        // let location = 'Unknown';
 
-        // const geoData = geoip.lookup(clientIp);
-        // console.log('geoData', geoData)
-
-        // if (geoData && geoData.city) {
-        //     location = `${geoData.city}, ${geoData.country}`;
-        // }
-        
-        const geoResponse = await axios.get(`http://ipinfo.io/${clientIp}?token=${process.env.IPINFO_TOKEN}`);
+        // Fetching data with ipinfo.io
+        const geoResponse = await axios.get(`https://ipinfo.io/${clientIp}?token=${process.env.IPINFO_TOKEN}`);
+        console.log('Geo Response:', geoResponse.data); // Log the entire response data
         const geoData = geoResponse.data;
 
         if (!geoData || !geoData.city || !geoData.country) {
-            throw new Error('Could not determine location from the IP address')
-            
+            throw new Error('Could not determine location from IP address');
         }
 
-        const location = `${geoData.city}, ${geoData.country}`;
+        const location = geoData.city
         const name = req.query.name || 'Anonymous';
-        
 
-        //fetch weather data using Axios
+        // Fetching weather data from weatherapi
         const weatherResponse = await axios.get(`http://api.weatherapi.com/v1/current.json`, {
             params: {
                 key: process.env.WEATHER_API_KEY,
@@ -52,23 +40,22 @@ app.get('/', async (req, res) => {
             }
         });
 
-        console.log('Weather API Response:', weatherResponse.data)
+        console.log('Weather API Response:', weatherResponse.data);
 
         const temperature = weatherResponse.data.current.temp_c;
 
-        const greeting = `Hello, ${name}! The temperature in  ${location} is ${temperature} degrees Celsius.`;
+        const greeting = `Hello, ${name}! The temperature in ${location} is ${temperature} degrees Celsius.`;
         const response = {
             ip: clientIp,
             location: geoData,
             greeting
-        }
+        };
         res.json(response);
 
     } catch (error) {
-        console.error('Error', error.message);
-        res.status(500).json({error: 'Internal server error'})
+        console.error('Error:', error.message);
+        res.status(500).json({ error: 'Internal server error' });
     }
+});
 
-    })
-
-app.listen (PORT, () => console.log(`Server running on port ${PORT}`))
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
