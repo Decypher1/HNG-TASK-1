@@ -12,17 +12,24 @@ app.use(express.json());
 
 app.get('/', async (req, res) => {
     try {
+        const name = req.query.name;
+        if (!name) {
+            return res.status(400).json({
+                error: 'A name is required as a query parameter'
+            })
+        }
+
         let clientIp = requestIp.getClientIp(req);
         console.log('Client IP:', clientIp);
 
         // Testing with local IP
         if (clientIp.startsWith('::ffff:') || clientIp === '::1' || clientIp === '127.0.0.1') {
-            clientIp = '8.8.8.8'; // Example: Google's public DNS server IP address
+            clientIp = '8.8.8.8'; //  Google's public DNS server IP address
         }
 
         // Fetching data with ipinfo.io
         const geoResponse = await axios.get(`https://ipinfo.io/${clientIp}?token=${process.env.IPINFO_TOKEN}`);
-        console.log('Geo Response:', geoResponse.data); // Log the entire response data
+        console.log('Geo Response:', geoResponse.data); // Logging response data
         const geoData = geoResponse.data;
 
         if (!geoData || !geoData.city || !geoData.country) {
@@ -30,8 +37,7 @@ app.get('/', async (req, res) => {
         }
 
         const location = geoData.city
-        const name = req.query.name || 'Anonymous';
-
+        
         // Fetching weather data from weatherapi
         const weatherResponse = await axios.get(`http://api.weatherapi.com/v1/current.json`, {
             params: {
@@ -47,7 +53,7 @@ app.get('/', async (req, res) => {
         const greeting = `Hello, ${name}! The temperature in ${location} is ${temperature} degrees Celsius.`;
         const response = {
             ip: clientIp,
-            location: geoData,
+            location: location,
             greeting
         };
         res.json(response);
