@@ -16,9 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 })
-app.post('/', async (req, res) => {
+app.get('/api/hello', async (req, res) => {
     try {
-        const name = req.body.name;
+        const name = req.query.name;
         if (!name) {
             return res.status(400).json({error: 'name is required'});
         }
