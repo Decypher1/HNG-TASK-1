@@ -4,19 +4,19 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const requestIp = require('request-ip');
+const path = require('path');
 
 const PORT = process.env.PORT || 4000;
 const app = express();
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', async (req, res) => {
     try {
         const name = req.query.name;
         if (!name) {
-            return res.status(400).json({
-                error: 'A name is required as a query parameter'
-            })
+            return res.sendFile(path.join(__dirname, 'public', 'index.html'));
         }
 
         let clientIp = requestIp.getClientIp(req);
