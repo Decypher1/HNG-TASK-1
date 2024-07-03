@@ -11,12 +11,16 @@ const app = express();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
 
-app.get('/', async (req, res) => {
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+})
+app.post('/', async (req, res) => {
     try {
-        const name = req.query.name;
+        const name = req.body.name;
         if (!name) {
-            return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+            return res.status(400).json({error: 'name is required'});
         }
 
         let clientIp = requestIp.getClientIp(req);
