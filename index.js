@@ -18,8 +18,8 @@ app.get('/', (req, res) => {
 })
 app.get('/api/hello', async (req, res) => {
     try {
-        const name = req.query.name;
-        if (!name) {
+        const visitor_name = req.query.visitor_name;
+        if (!visitor_name) {
             return res.status(400).json({error: 'name is required'});
         }
 
@@ -54,7 +54,7 @@ app.get('/api/hello', async (req, res) => {
 
         const temperature = weatherResponse.data.current.temp_c;
 
-        const greeting = `Hello, ${name}! The temperature is ${temperature} degrees Celsius in ${location}.`;
+        const greeting = `Hello, ${visitor_name}! The temperature is ${temperature} degrees Celsius in ${location}.`;
         const response = {
             ip: clientIp,
             location: location,
