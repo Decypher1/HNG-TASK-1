@@ -20,7 +20,7 @@ app.get('/api/hello', async (req, res) => {
     try {
         const visitor_name = req.query.visitor_name;
         if (!visitor_name) {
-            return res.status(400).json({error: 'name is required'});
+            return res.status(400).json({error: 'visitor_name is required'});
         }
 
         let clientIp = requestIp.getClientIp(req);
